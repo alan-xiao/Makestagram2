@@ -16,6 +16,7 @@ class Post {
     let imageURL: String
     let imageHeight: CGFloat
     let creationDate: Date
+    var isLiked = false
     
     var dictValue: [String : Any] {
         let createdAgo = creationDate.timeIntervalSince1970
@@ -54,5 +55,21 @@ class Post {
             self.creationDate = Date(timeIntervalSince1970: createdAgo)
             self.likeCount = likeCount
             self.poster = User(uid: uid, username: username)
+    }
+    
+    static func isPostLiked(_ post: Post, byCurrentUserWithCompletion completion: @escaping (Bool) -> Void) {
+        guard let postKey = post.key else {
+            assertionFailure("Error: post must have key.")
+            return completion(false)
+        }
+        
+        let likesRef = Database.database().reference().child("postLikes").child(postKey)
+        likesRef.queryEqual(toValue: nil, childKey: User.current.uid).observeSingleEvent(of: .value, with: { (snapshot) in
+            if let _ = snapshot.value as? [String : Bool] {
+                completion(true)
+            } else {
+                completion(false)
+            }
+        })
     }
 }

@@ -11,6 +11,8 @@ import Foundation
 
 class User: NSObject {
     
+    var isFollowed = false
+    
     required init?(coder aDecoder: NSCoder) {
         guard let uid = aDecoder.decodeObject(forKey: Constants.UserDefaults.uid) as? String,
             let username = aDecoder.decodeObject(forKey: Constants.UserDefaults.username) as? String

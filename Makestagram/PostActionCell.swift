@@ -9,9 +9,14 @@
 import Foundation
 import UIKit
 
+protocol PostActionCellDelegate: class {
+    func didTapLikeButton(_ likeButton: UIButton, on cell: PostActionCell)
+}
+
 class PostActionCell: UITableViewCell {
     
     // MARK: - Subviews
+    weak var delegate: PostActionCellDelegate?
     
     @IBOutlet weak var likeButton: UIButton!
     @IBOutlet weak var likeCountLabel: UILabel!
@@ -28,6 +33,8 @@ class PostActionCell: UITableViewCell {
     // MARK: - IBActions
     
     @IBAction func likeButtonTapped(_ sender: UIButton) {
-        print("like button tapped")
+         delegate?.didTapLikeButton(sender, on: self)
     }
+    
+    
 }
