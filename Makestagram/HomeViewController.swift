@@ -16,16 +16,24 @@ class HomeViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
 
-    
+    let refreshControl = UIRefreshControl()
     var posts = [Post]()
 
-    override func viewDidLoad(){
+    override func viewDidLoad() {
         super.viewDidLoad()
         
-         configureTableView()
-        
-        UserService.posts(for: User.current) { (posts) in
+        configureTableView()
+        reloadTimeline()
+    }
+    
+    func reloadTimeline() {
+        UserService.timeline { (posts) in
             self.posts = posts
+            
+            if self.refreshControl.isRefreshing {
+                self.refreshControl.endRefreshing()
+            }
+            
             self.tableView.reloadData()
         }
     }
@@ -34,6 +42,8 @@ class HomeViewController: UIViewController {
         tableView.tableFooterView = UIView()
         // remove separators from cells
         tableView.separatorStyle = .none
+        refreshControl.addTarget(self, action: #selector(reloadTimeline), for: .valueChanged)
+        tableView.addSubview(refreshControl)
     }
     let timestampFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -49,25 +59,26 @@ extension HomeViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 3
     }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let post = posts[indexPath.section]
         
         switch indexPath.row {
         case 0:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "PostHeaderCell") as! PostHeaderCell
-            cell.usernameLabel.text = User.current.username
+            let cell: PostHeaderCell = tableView.dequeueReusableCell()
+            cell.usernameLabel.text = post.poster.username
             
             return cell
             
         case 1:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "PostImageCell") as! PostImageCell
+            let cell: PostImageCell = tableView.dequeueReusableCell()
             let imageURL = URL(string: post.imageURL)
             cell.postImageView.kf.setImage(with: imageURL)
             
             return cell
             
         case 2:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "PostActionCell") as! PostActionCell
+            let cell: PostActionCell = tableView.dequeueReusableCell()
             cell.delegate = self
             configureCell(cell, with: post)
             
